@@ -93,7 +93,7 @@ dt[, rcClear      := flip(dt[, rcClear])]
 dt[, rcMeaningful := flip(dt[, rcMeaningful])]
 
 dt[, rtFair       := flip(dt[, rtFair])]
-dt[, rcAcc        := flip(dt[, rcAcc])]
+dt[, rtAcc        := flip(dt[, rtAcc])]
 dt[, rtSat        := flip(dt[, rtSat])]
 dt[, rtUseful     := flip(dt[, rtUseful])]
 dt[, rtClear      := flip(dt[, rtClear])]
@@ -173,7 +173,7 @@ mrUseful <- lm(rUseful ~ rTreat, data = dc)
 mrClear <- lm(rClear ~ rTreat, data = dc)
 mrMeaningful <- lm(rMeaningful ~ rTreat, data = dc)
 
-stargazer(mtFair, mtAcc, mtSat, mtUseful, mtClear, mtMeaningful,
+stargazer(mrFair, mrAcc, mrSat, mrUseful, mrClear, mrMeaningful,
           type = 'text',
           covariate.labels = c("Explanation"),
           dep.var.labels = c("Fairness", "Accuracy", "Satisfaction", "Usefulness",
@@ -205,12 +205,12 @@ stargazer(otFair, otAcc, otSat, otUseful, otClear, otMeaningful,
 In the case of Twitter moderation, there does not seem to be a difference based on order of context.
 
 ```{r}
-orFair <-       lm(rFair ~ firstContext, data = dc)
-orAcc <-        lm(rAcc ~ firstContext, data = dc)
-orSat <-        lm(rSat ~ firstContext, data = dc)
-orUseful <-     lm(rUseful ~ firstContext, data = dc)
-orClear <-      lm(rClear ~ firstContext, data = dc)
-orMeaningful <- lm(rMeaningful ~ firstContext, data = dc)
+orFair <-       lm(rFair ~ rTreat + tTreat + firstContext, data = dc)
+orAcc <-        lm(rAcc ~ rTreat + tTreat +  firstContext, data = dc)
+orSat <-        lm(rSat ~ rTreat + tTreat +  firstContext, data = dc)
+orUseful <-     lm(rUseful ~ rTreat ++ tTreat +  firstContext, data = dc)
+orClear <-      lm(rClear ~ rTreat + tTreat +  firstContext, data = dc)
+orMeaningful <- lm(rMeaningful ~ rTreat + tTreat +  firstContext, data = dc)
 
 library(stargazer)
 stargazer(orFair, orAcc, orSat, orUseful, orClear, orMeaningful,
