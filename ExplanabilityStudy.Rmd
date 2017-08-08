@@ -1,0 +1,271 @@
+---
+title: "Explanability Study"
+author: "Michael Amodeo, Krista Mar, Mona Iwamoto"
+date: "8/6/2017"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# load packages 
+library(data.table)
+library(foreign)
+library(lmtest)
+library(sandwich)
+library(multiwayvcov)
+library(stargazer)
+```
+
+### Import data
+
+```{r}
+##  Key to var names: tc = twitter control group
+#                     tt = twitter treatment group
+#                     rc = recidivism control group 
+#                     rt = recidivism treatment group
+
+fieldNames <-c('v1','v2','v3','v4','v5','v6','v7','v8','v9','v10',
+               'v11','v12','v13','v14','v15','v16','v17',
+               'tcFair', 'tcAcc', 'tcSat', 'tcUseful', 'tcClear', 'tcMeaningful',
+               'tcReqInfo','tcOther','ttFair', 'ttAcc', 'ttSat', 'ttUseful', 
+               'ttClear', 'ttMeaningful','ttReqInfo', 'ttOther',
+               'rcFair', 'rcAcc', 'rcSat', 'rcUseful', 'rcClear', 'rcMeaningful',
+               'rcReqInfo', 'rcOther', 'rtFair', 'rtAcc', 'rtSat', 'rtUseful', 
+               'rtClear', 'rtMeaningful', 'rtReqInfo', 'rtOther',
+               'ageGroup','race','gender','socMed','educ','feedback','duration',
+               'firstContext','v18','random','v19')
+
+
+d <- read.csv("ExplainabilityStudy.csv", header = FALSE, skip = 3, col.names = fieldNames)
+d <- data.table(d)
+
+## Remove unneed columns from raw Qualtrics data.
+dt <- d[,c('v1','v2','v3','v4','v5','v6','v7','v8','v9','v10',
+               'v11','v12','v13','v14','v15','v16','v17','v18','v19'):=NULL]
+
+```
+
+```{r}
+summary(dt)
+```
+### Data Cleanup
+```{r}
+# For the Twitter fairness questions, the Qualtrics survey 
+# responses were reversed in two instances.
+
+# Function to flip the scale 
+flip <- function(originalScale) {
+  x <- originalScale - 3        #  3 is median
+  return(3 - x)
+}
+
+# # Flip the scales for question 3.2 Fairness for Twitter Control and 6.2 Recidivism Control
+# dt$tcFair <- flip(dt$tcFair)
+# dt$rcFair <- flip(dt$rcFair)
+
+# For an unknown reason, the quetions 7.2 Fairness for Recidivism Treatment 
+# the values were offset by 24.  This was cross-checked with the text-based responses.
+
+dt$rtFair <- dt$rtFair - 24      # Qualtrics weirdness
+
+
+# Organize scales so larger values correlate to more fair, more accurate, etc.
+dt[, tcAcc        := flip(dt[, tcAcc])]
+dt[, tcSat        := flip(dt[, tcSat])]
+dt[, tcUseful     := flip(dt[, tcUseful])]
+dt[, tcClear      := flip(dt[, tcClear])]
+dt[, tcMeaningful := flip(dt[, tcMeaningful])]
+
+dt[, ttFair       := flip(dt[, ttFair])]
+dt[, ttAcc        := flip(dt[, ttAcc])]
+dt[, ttSat        := flip(dt[, ttSat])]
+dt[, ttUseful     := flip(dt[, ttUseful])]
+dt[, ttClear      := flip(dt[, ttClear])]
+dt[, ttMeaningful := flip(dt[, ttMeaningful])]
+
+dt[, rcAcc        := flip(dt[, rcAcc])]
+dt[, rcSat        := flip(dt[, rcSat])]
+dt[, rcUseful     := flip(dt[, rcUseful])]
+dt[, rcClear      := flip(dt[, rcClear])]
+dt[, rcMeaningful := flip(dt[, rcMeaningful])]
+
+dt[, rtFair       := flip(dt[, rtFair])]
+dt[, rcAcc        := flip(dt[, rcAcc])]
+dt[, rtSat        := flip(dt[, rtSat])]
+dt[, rtUseful     := flip(dt[, rtUseful])]
+dt[, rtClear      := flip(dt[, rtClear])]
+dt[, rtMeaningful := flip(dt[, rtMeaningful])]
+```
+
+### Randomization Check
+Did all of the treatments receive similar numbers of respondents?
+```{r}
+## Show number of responses for each question
+apply(dt, 2, function(x) length(which(!is.na(x))))
+
+```
+From the analysis above, it appears that there were approximately `r dt[na.omit(tcFair), .N]` in the twitter-control group, `r dt[na.omit(ttFair), .N]` in the twitter-treatment group, `r dt[na.omit(rcFair), .N]` in the recidivism-control group and `r dt[na.omit(rtFair), .N]` in the recidivism-treatment group.
+
+### Were the two contexts assigned equally?
+`r dt[firstContext == 'Recidivism', .N]` received the 'Recidivism' context first. `r dt[firstContext == 'Twitter', .N]` received the 'Twitter' context first.
+
+### Attrition effects
+Out of `r nrow(dt)` surveys, `r dt[na.omit(random), .N]` were completed.
+
+## Define Metrics
+The metrics we evaluated were split into two groups. The first three asked respondents to rate the decision that was made with respect to fairness, accuracy, and their satisfaction with the decision. The second three asked specifically about the explanation itself. Respondents were asked if the explanation was useful, clear, and meaningful.
+
+### Consolidate each metric across treatments
+```{r}
+
+# Create consolidated data table
+
+dc <- data.table(tFair = rowSums(dt[, c('tcFair', 'ttFair')], na.rm=T))
+dc[, tAcc := rowSums(dt[, c('tcAcc', 'ttAcc')], na.rm=T)]
+dc[, tSat := rowSums(dt[, c('tcSat', 'ttSat')], na.rm=T) ]
+dc[, tUseful := rowSums(dt[, c('tcUseful', 'ttUseful')], na.rm=T)]
+dc[, tClear := rowSums(dt[, c('tcClear', 'ttClear')], na.rm=T)]
+dc[, tMeaningful := rowSums(dt[, c('tcMeaningful', 'ttMeaningful')], na.rm=T)]
+
+dc[, rFair := rowSums(dt[,c('rcFair', 'rtFair')], na.rm=T)]
+dc[, rAcc := rowSums(dt[,c('rcAcc', 'rtAcc')], na.rm=T)]
+dc[, rSat := rowSums(dt[,c('rcSat', 'rtSat')], na.rm=T) ]
+dc[, rUseful := rowSums(dt[,c('rcUseful', 'rtUseful')], na.rm=T)]
+dc[, rClear := rowSums(dt[,c('rcClear', 'rtClear')], na.rm=T)]
+dc[, rMeaningful := rowSums(dt[,c('rcMeaningful', 'rtMeaningful')], na.rm=T)]
+
+dt1 <- dt[, c('ageGroup','race','gender','socMed','educ','firstContext')]
+dc <- cbind(dc,dt1)
+
+dc[, tTreat := dt[, is.na(tcFair)]]
+dc[, rTreat := dt[, is.na(rcFair)]]
+```
+
+## Regression Models
+
+### Twitter Moderation
+
+Create linear models for each question for both Twitter and recidivism. 
+
+```{r}
+mtFair <- lm(tFair ~ tTreat, data = dc)
+mtAcc <- lm(tAcc ~ tTreat, data = dc)
+mtSat <- lm(tSat ~ tTreat, data = dc)
+mtUseful <- lm(tUseful ~ tTreat, data = dc)
+mtClear <- lm(tClear ~ tTreat, data = dc)
+mtMeaningful <- lm(tMeaningful ~ tTreat, data = dc)
+
+stargazer(mtFair, mtAcc, mtSat, mtUseful, mtClear, mtMeaningful,
+          type = 'text',
+          covariate.labels = c("Explanation"),
+          dep.var.labels = c("Fairness", "Accuracy", "Satisfaction", "Usefulness",
+                             "Clarity", "Meaningfulness"),
+          dep.var.caption = "Twitter Moderation")
+```
+```{r}
+mrFair <- lm(rFair ~ rTreat, data = dc)
+mrAcc <- lm(rAcc ~ rTreat, data = dc)
+mrSat <- lm(rSat ~ rTreat, data = dc)
+mrUseful <- lm(rUseful ~ rTreat, data = dc)
+mrClear <- lm(rClear ~ rTreat, data = dc)
+mrMeaningful <- lm(rMeaningful ~ rTreat, data = dc)
+
+stargazer(mtFair, mtAcc, mtSat, mtUseful, mtClear, mtMeaningful,
+          type = 'text',
+          covariate.labels = c("Explanation"),
+          dep.var.labels = c("Fairness", "Accuracy", "Satisfaction", "Usefulness",
+                             "Clarity", "Meaningfulness"),
+          dep.var.caption = "Recidivism Risk Assessment")
+```
+
+
+
+
+## Difference in Order
+We also discussed looking at the difference in responses depending on the order of contexts.
+
+```{r}
+otFair <-       lm(tFair ~ firstContext, data = dc)
+otAcc <-        lm(tAcc ~ firstContext, data = dc)
+otSat <-        lm(tSat ~ firstContext, data = dc)
+otUseful <-     lm(tUseful ~ firstContext, data = dc)
+otClear <-      lm(tClear ~ firstContext, data = dc)
+otMeaningful <- lm(tMeaningful ~ firstContext, data = dc)
+
+library(stargazer)
+stargazer(otFair, otAcc, otSat, otUseful, otClear, otMeaningful,
+          type = 'text',
+          dep.var.labels = c("Fairness", "Accuracy", "Satisfaction", "Usefulness",
+                             "Clarity", "Meaningfulness"),
+          dep.var.caption = "Twitter Moderation")
+```
+In the case of Twitter moderation, there does not seem to be a difference based on order of context.
+
+```{r}
+orFair <-       lm(rFair ~ firstContext, data = dc)
+orAcc <-        lm(rAcc ~ firstContext, data = dc)
+orSat <-        lm(rSat ~ firstContext, data = dc)
+orUseful <-     lm(rUseful ~ firstContext, data = dc)
+orClear <-      lm(rClear ~ firstContext, data = dc)
+orMeaningful <- lm(rMeaningful ~ firstContext, data = dc)
+
+library(stargazer)
+stargazer(orFair, orAcc, orSat, orUseful, orClear, orMeaningful,
+          type = 'text',
+          dep.var.labels = c("Fairness", "Accuracy", "Satisfaction", "Usefulness",
+                             "Clarity", "Meaningfulness"),
+          dep.var.caption = "Recidivism Risk Assessment")
+```
+
+
+## Other Factors
+```{r}
+otFair <-       lm(tFair ~ tTreat + ageGroup + educ + socMed + gender, data = dc)
+otAcc <-        lm(tAcc ~ tTreat + ageGroup + educ + socMed + gender, data = dc)
+otSat <-        lm(tSat ~ tTreat + ageGroup + educ + socMed + gender, data = dc)
+otUseful <-     lm(tUseful ~ tTreat + ageGroup + educ + socMed + gender, data = dc)
+otClear <-      lm(tClear ~ tTreat + ageGroup + educ + socMed + gender, data = dc)
+otMeaningful <- lm(tMeaningful ~ tTreat + ageGroup + educ + socMed + gender, data = dc)
+
+library(stargazer)
+stargazer(otFair, otAcc, otSat, otUseful, otClear, otMeaningful,
+          type = 'text',
+          covariate.labels = c("Explanation", "Age Group", "Education", "Social Media", "Gender"),
+          dep.var.labels = c("Fairness", "Accuracy", "Satisfaction", "Usefulness",
+                             "Clarity", "Meaningfulness"),
+          dep.var.caption = "Twitter Moderation")
+
+
+```
+
+```{r}
+orFair <-       lm(rFair ~ rTreat + ageGroup + educ + socMed + gender, data = dc)
+orAcc <-        lm(rAcc ~ rTreat + ageGroup + educ + socMed + gender, data = dc)
+orSat <-        lm(rSat ~ rTreat + ageGroup + educ + socMed + gender, data = dc)
+orUseful <-     lm(rUseful ~ rTreat + ageGroup + educ + socMed + gender, data = dc)
+orClear <-      lm(rClear ~ rTreat + ageGroup + educ + socMed + gender, data = dc)
+orMeaningful <- lm(rMeaningful ~ rTreat + ageGroup + educ + socMed + gender, data = dc)
+
+library(stargazer)
+stargazer(otFair, otAcc, otSat, otUseful, otClear, otMeaningful,
+          type = 'text',
+          covariate.labels = c("Explanation", "Age Group", "Education", "Social Media", "Gender"),
+          dep.var.labels = c("Fairness", "Accuracy", "Satisfaction", "Usefulness",
+                             "Clarity", "Meaningfulness"),
+          dep.var.caption = "Recidivism Risk Assessment")
+
+```
+
+## Data Checks
+
+Just to check a couple of these outputs.
+
+### Usefulness of Recidivism Explanations
+```{r}
+```
+
+### Meaningfulness of Recidivism Explanations
+
