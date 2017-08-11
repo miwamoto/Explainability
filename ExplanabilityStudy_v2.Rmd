@@ -161,47 +161,95 @@ head(dc)
 ###Twitter Histograms
 ```{r}
 par(mfrow=c(2,3))
-hist(dt$tcFair, col=rgb(0,0,1,1/4), breaks=5, main= "Twitter Fairness", xlab="Fairness", ylim=c(0,175))
-hist(dt$ttFair,col=rgb(1,0,0,1/4), breaks=5, add=T)
+hist(dt$tcFair, col=rgb(0,0,1,1/4), breaks = seq(0.5, 5.5, 1), main= "Twitter Fairness", xlab="Fairness", ylim=c(0,175))
+hist(dt$ttFair,col=rgb(1,0,0,1/4), breaks = seq(0.5, 5.5, 1), add=T)
 #legend("topright", c("Control", "Treatment"), fill=c("blue", "red"))
 
-hist(dt$tcAcc, col=rgb(0,0,1,1/4), breaks=5, main= "Twitter Accuracy", xlab="Accuracy", ylim=c(0,175))
-hist(dt$ttAcc,col=rgb(1,0,0,1/4), breaks=5, add=T)
+hist(dt$tcAcc, col=rgb(0,0,1,1/4), breaks = seq(0.5, 5.5, 1), main= "Twitter Accuracy", xlab="Accuracy", ylim=c(0,175))
+hist(dt$ttAcc,col=rgb(1,0,0,1/4), breaks = seq(0.5, 5.5, 1), add=T)
 
-hist(dt$tcSat, col=rgb(0,0,1,1/4), breaks=5, main= "Twitter Satifaction", xlab="Satisfaction", ylim=c(0,175))
-hist(dt$ttSat,col=rgb(1,0,0,1/4), breaks=5, add=T)
+hist(dt$tcSat, col=rgb(0,0,1,1/4), breaks = seq(0.5, 5.5, 1), main= "Twitter Satifaction", xlab="Satisfaction", ylim=c(0,175))
+hist(dt$ttSat,col=rgb(1,0,0,1/4), breaks = seq(0.5, 5.5, 1), add=T)
 
-hist(dt$tcUseful, col=rgb(0,0,1,1/4), breaks=5, main= "Twitter Usefulness", xlab="Usefulness", ylim=c(0,175))
-hist(dt$ttUseful,col=rgb(1,0,0,1/4), breaks=5, add=T)
+hist(dt$tcUseful, col=rgb(0,0,1,1/4), breaks = seq(0.5, 5.5, 1), main= "Twitter Usefulness", xlab="Usefulness", ylim=c(0,175))
+hist(dt$ttUseful,col=rgb(1,0,0,1/4), breaks = seq(0.5, 5.5, 1), add=T)
 
-hist(dt$tcClear, col=rgb(0,0,1,1/4), breaks=5, main= "Twitter Clarity", xlab="Clarity", ylim=c(0,175))
-hist(dt$ttClear,col=rgb(1,0,0,1/4), breaks=5, add=T)
+hist(dt$tcClear, col=rgb(0,0,1,1/4), breaks = seq(0.5, 5.5, 1), main= "Twitter Clarity", xlab="Clarity", ylim=c(0,175))
+hist(dt$ttClear,col=rgb(1,0,0,1/4), breaks = seq(0.5, 5.5, 1), add=T)
 
-hist(dt$tcMeaningful, col=rgb(0,0,1,1/4), breaks=5, main= "Twitter Meaningfulness", xlab="Meaningfulness", ylim=c(0,175))
-hist(dt$ttMeaningful,col=rgb(1,0,0,1/4), breaks=5, add=T)
+hist(dt$tcMeaningful, col=rgb(0,0,1,1/4), breaks = seq(0.5, 5.5, 1), main= "Twitter Meaningfulness", xlab="Meaningfulness", ylim=c(0,175))
+hist(dt$ttMeaningful,col=rgb(1,0,0,1/4), breaks = seq(0.5, 5.5, 1), add=T)
 ```
 
 ###Recidivism Histogram
 ```{r}
 par(mfrow=c(2,3))
-hist(dt$rcFair, col=rgb(0,0,1,1/4), breaks=5, main= "Recidivism Fairness", xlab="Fairness", ylim=c(0,175))
-hist(dt$rtFair,col=rgb(1,0,0,1/4), breaks=5, add=T)
+hist(dt$rcFair, col=rgb(0,0,1,1/4), breaks = seq(0.5, 5.5, 1), main= "Recidivism Fairness", xlab="Fairness", ylim=c(0,175))
+hist(dt$rtFair,col=rgb(1,0,0,1/4), breaks = seq(0.5, 5.5, 1), add=T)
 #legend("topright", c("Control", "Treatment"), fill=c("blue", "red"))
 
-hist(dt$rcAcc, col=rgb(0,0,1,1/4), breaks=5, main= "Recidivism Accuracy", xlab="Accuracy", ylim=c(0,175))
-hist(dt$rtAcc,col=rgb(1,0,0,1/4), breaks=5, add=T)
+hist(dt$rcAcc, col=rgb(0,0,1,1/4), breaks = seq(0.5, 5.5, 1), main= "Recidivism Accuracy", xlab="Accuracy", ylim=c(0,175))
+hist(dt$rtAcc,col=rgb(1,0,0,1/4), breaks = seq(0.5, 5.5, 1), add=T)
 
-hist(dt$rcSat, col=rgb(0,0,1,1/4), breaks=5, main= "Recidivism Satifaction", xlab="Satisfaction", ylim=c(0,175))
-hist(dt$rtSat,col=rgb(1,0,0,1/4), breaks=5, add=T)
+hist(dt$rcSat, col=rgb(0,0,1,1/4), breaks = seq(0.5, 5.5, 1), main= "Recidivism Satifaction", xlab="Satisfaction", ylim=c(0,175))
+hist(dt$rtSat,col=rgb(1,0,0,1/4), breaks = seq(0.5, 5.5, 1), add=T)
 
-hist(dt$rcUseful, col=rgb(0,0,1,1/4), breaks=5, main= "Recidivism Usefulness", xlab="Usefulness", ylim=c(0,175))
-hist(dt$rtUseful,col=rgb(1,0,0,1/4), breaks=5, add=T)
+hist(dt$rcUseful, col=rgb(0,0,1,1/4), breaks = seq(0.5, 5.5, 1), main= "Recidivism Usefulness", xlab="Usefulness", ylim=c(0,175))
+hist(dt$rtUseful,col=rgb(1,0,0,1/4), breaks = seq(0.5, 5.5, 1), add=T)
 
-hist(dt$rcClear, col=rgb(0,0,1,1/4), breaks=5, main= "Recidivism Clarity", xlab="Clarity", ylim=c(0,175))
-hist(dt$rtClear,col=rgb(1,0,0,1/4), breaks=5, add=T)
+hist(dt$rcClear, col=rgb(0,0,1,1/4), breaks = seq(0.5, 5.5, 1), main= "Recidivism Clarity", xlab="Clarity", ylim=c(0,175))
+hist(dt$rtClear,col=rgb(1,0,0,1/4), breaks = seq(0.5, 5.5, 1), add=T)
 
-hist(dt$rcMeaningful, col=rgb(0,0,1,1/4), breaks=5, main= "Recidivism Meaningfulness", xlab="Meaningfulness", ylim=c(0,175))
-hist(dt$rtMeaningful,col=rgb(1,0,0,1/4), breaks=5, add=T)
+hist(dt$rcMeaningful, col=rgb(0,0,1,1/4), breaks = seq(0.5, 5.5, 1), main= "Recidivism Meaningfulness", xlab="Meaningfulness", ylim=c(0,175))
+hist(dt$rtMeaningful,col=rgb(1,0,0,1/4), breaks = seq(0.5, 5.5, 1), add=T)
+```
+
+###Twitter Histograms Printed
+```{r}
+par(mfrow=c(2,3))
+hist(dt$tcFair, col=rgb(0.1,0.1,0.1,0.5), breaks = seq(0.5, 5.5, 1), main= "Twitter Fairness", xlab="Fairness", ylim=c(0,175))
+hist(dt$ttFair,col=rgb(0.8,0.8,0.8,0.5), breaks = seq(0.5, 5.5, 1), add=T)
+#legend("topright", c("Control", "Treatment"), fill=c("blue", "red"))
+
+hist(dt$tcAcc, col=rgb(0.1,0.1,0.1,0.5), breaks = seq(0.5, 5.5, 1), main= "Twitter Accuracy", xlab="Accuracy", ylim=c(0,175))
+hist(dt$ttAcc,col=rgb(0.8,0.8,0.8,0.5), breaks = seq(0.5, 5.5, 1), add=T)
+
+hist(dt$tcSat, col=rgb(0.1,0.1,0.1,0.5), breaks = seq(0.5, 5.5, 1), main= "Twitter Satifaction", xlab="Satisfaction", ylim=c(0,175))
+hist(dt$ttSat,col=rgb(0.8,0.8,0.8,0.5), breaks = seq(0.5, 5.5, 1), add=T)
+
+hist(dt$tcUseful, col=rgb(0.1,0.1,0.1,0.5), breaks = seq(0.5, 5.5, 1), main= "Twitter Usefulness", xlab="Usefulness", ylim=c(0,175))
+hist(dt$ttUseful,col=rgb(0.8,0.8,0.8,0.5), breaks = seq(0.5, 5.5, 1), add=T)
+
+hist(dt$tcClear, col=rgb(0.1,0.1,0.1,0.5), breaks = seq(0.5, 5.5, 1), main= "Twitter Clarity", xlab="Clarity", ylim=c(0,175))
+hist(dt$ttClear,col=rgb(0.8,0.8,0.8,0.5), breaks = seq(0.5, 5.5, 1), add=T)
+
+hist(dt$tcMeaningful, col=rgb(0.1,0.1,0.1,0.5), breaks = seq(0.5, 5.5, 1), main= "Twitter Meaningfulness", xlab="Meaningfulness", ylim=c(0,175))
+hist(dt$ttMeaningful,col=rgb(0.8,0.8,0.8,0.5), breaks = seq(0.5, 5.5, 1), add=T)
+```
+
+
+###Recidivism Histogram Printed
+```{r}
+par(mfrow=c(2,3))
+hist(dt$rcFair, col=rgb(0.1,0.1,0.1,0.5), breaks = seq(0.5, 5.5, 1), main= "Recidivism Fairness", xlab="Fairness", ylim=c(0,175))
+hist(dt$rtFair,col=rgb(0.8,0.8,0.8,0.5), breaks = seq(0.5, 5.5, 1), add=T)
+#legend("topright", c("Control", "Treatment"), fill=c("blue", "red"))
+
+hist(dt$rcAcc, col=rgb(0.1,0.1,0.1,0.5), breaks = seq(0.5, 5.5, 1), main= "Recidivism Accuracy", xlab="Accuracy", ylim=c(0,175))
+hist(dt$rtAcc,col=rgb(0.8,0.8,0.8,0.5), breaks = seq(0.5, 5.5, 1), add=T)
+
+hist(dt$rcSat, col=rgb(0.1,0.1,0.1,0.5), breaks = seq(0.5, 5.5, 1), main= "Recidivism Satifaction", xlab="Satisfaction", ylim=c(0,175))
+#legend(4,9, Treat(df),lwd=4, col=c())
+hist(dt$rtSat,col=rgb(0.8,0.8,0.8,0.5), breaks = seq(0.5, 5.5, 1), add=T)
+
+hist(dt$rcUseful, col=rgb(0.1,0.1,0.1,0.5), breaks = seq(0.5, 5.5, 1), main= "Recidivism Usefulness", xlab="Usefulness", ylim=c(0,175))
+hist(dt$rtUseful,col=rgb(0.8,0.8,0.8,0.5), breaks = seq(0.5, 5.5, 1), add=T)
+
+hist(dt$rcClear, col=rgb(0.1,0.1,0.1,0.5), breaks = seq(0.5, 5.5, 1), main= "Recidivism Clarity", xlab="Clarity", ylim=c(0,175))
+hist(dt$rtClear,col=rgb(0.8,0.8,0.8,0.5), breaks = seq(0.5, 5.5, 1), add=T)
+
+hist(dt$rcMeaningful, col=rgb(0.1,0.1,0.1,0.5), breaks = seq(0.5, 5.5, 1), main= "Recidivism Meaningfulness", xlab="Meaningfulness", ylim=c(0,175))
+hist(dt$rtMeaningful,col=rgb(0.8,0.8,0.8,0.5), breaks = seq(0.5, 5.5, 1), add=T)
 ```
 
 ###Demographic 
