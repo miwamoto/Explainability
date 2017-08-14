@@ -34,6 +34,8 @@ skip_second = all_content[-c(2,3)]
 d <-read.csv(textConnection(skip_second), header = TRUE, stringsAsFactors = FALSE)
 d <- data.table(d)
 
+remove(all_content, skip_second)
+
 # Create new data table without fields we are not using
 dt <- d[,-c('ResponseSet','IPAddress','StartDate','EndDate','RecipientLastName',
           'RecipientFirstName','RecipientEmail','ExternalDataReference','Status',
@@ -51,19 +53,23 @@ old_names <- colnames(dt)
 
 new_names <- c("ResponseID","Finished","First.Context","random","intro","tweet",
                "tControl", 'tcFair', 'tcAcc', 'tcSat', 'tcUseful', 'tcClear', 
-               'tcMeaningful', 'tcReqInfo', 'tcOther1', 'tcOther2', 'tcOther3', 'tcOther4',
+               'tcMeaningful', 'tcReqInfo1', 'tcReqInfo2', 'tcReqInfo3', 'tcReqInfo4', 'tcReqInfo4_txt',
                "tTreat", 'ttFair', 'ttAcc', 'ttSat', 'ttUseful', 'ttClear',
-               'ttMeaningful', 'ttReqInfo', 'ttOther1', 'ttOther2', 'ttOther3', 'ttOther4',
+               'ttMeaningful', 'ttReqInfo1', 'ttReqInfo2', 'ttReqInfo3', 'ttReqInfo4', 'ttReqInfo4_txt',
                'recidivism', 
                'rControl', 'rcFair', 'rcAcc', 'rcSat', 'rcUseful', 'rcClear', 
-               'rcMeaningful', 'rcReqInfo', 'rcOther1', 'rcOther2', 'rcOther3', 'rcOther4',
+               'rcMeaningful', 'rcReqInfo1', 'rcReqInfo2', 'rcReqInfo3', 'rcReqInfo4', 'rcReqInfo4_txt',
                "rTreat", 'rtFair', 'rtAcc', 'rtSat', 'rtUseful', 'rtClear',
-               'rtMeaningful', 'rtReqInfo', 'rtOther1', 'rtOther2', 'rtOther3', 'rtOther4',
+               'rtMeaningful', 'rtReqInfo1', 'rtReqInfo2', 'rtReqInfo3', 'rtReqInfo4',  'rtReqInfo4_txt',
                'ageGroup', 'white', 'black', 'native', 'asian', 'pac_isle', 'hispanic', 
                'other', 'gender', 'socMed', 'educ', 'feedback')
 
 setnames(dt, old_names, new_names)
 colnames(dt)
+remove(old_names)
+```
+```{r}
+colnames(d)
 ```
 
 
@@ -147,14 +153,14 @@ dc[, rUseful := rowSums(dt[,c('rcUseful', 'rtUseful')], na.rm=T)]
 dc[, rClear := rowSums(dt[,c('rcClear', 'rtClear')], na.rm=T)]
 dc[, rMeaningful := rowSums(dt[,c('rcMeaningful', 'rtMeaningful')], na.rm=T)]
 
-dc[, tOther1 := rowSums(dt[,c('tcOther1', 'ttOther1')], na.rm=T)]
-dc[, tOther2 := rowSums(dt[,c('tcOther2', 'ttOther2')], na.rm=T)]
-dc[, tOther3 := rowSums(dt[,c('tcOther3', 'ttOther3')], na.rm=T)]
+dc[, tReqInfo1 := rowSums(dt[,c('tcReqInfo1', 'ttReqInfo1')], na.rm=T)]
+dc[, tReqInfo2 := rowSums(dt[,c('tcReqInfo2', 'ttReqInfo2')], na.rm=T)]
+dc[, tReqInfo3 := rowSums(dt[,c('tcReqInfo3', 'ttReqInfo3')], na.rm=T)]
 #dc[, tOther4 := rowSums(dt[,c('tcOther4', 'ttOther4')], na.rm=T)]
 
-dc[, rOther1 := rowSums(dt[,c('rcOther1', 'rtOther1')], na.rm=T)]
-dc[, rOther2 := rowSums(dt[,c('rcOther2', 'rtOther2')], na.rm=T)]
-dc[, rOther3 := rowSums(dt[,c('rcOther3', 'rtOther3')], na.rm=T)]
+dc[, rReqInfo1 := rowSums(dt[,c('rcReqInfo1', 'rtReqInfo1')], na.rm=T)]
+dc[, rReqInfo2 := rowSums(dt[,c('rcReqInfo2', 'rtReqInfo2')], na.rm=T)]
+dc[, rReqInfo3 := rowSums(dt[,c('rcReqInfo3', 'rtReqInfo3')], na.rm=T)]
 #dc[, rOther4 := rowSums(dt[,c('rcOther4', 'rtOther4')], na.rm=T)]
 
 dc[, white := !is.na(dt[, white])]
@@ -335,34 +341,34 @@ hist(dt$rtMeaningful,col=rgb(0.8,0.8,0.8,0.5), breaks = seq(0.5, 5.5, 1), add=T)
 ###What Additional Information did respondents want
 
 ```{r}
-tcsumother1<-sum(dt$tcOther1, na.rm=TRUE)
+tcsumReqInfo1<-sum(dt$tcReqInfo1, na.rm=TRUE)
 #tcsumother1
-tcsumother2<-sum(dt$tcOther2, na.rm=TRUE)
+tcsumReqInfo2<-sum(dt$tcReqInfo2, na.rm=TRUE)
 #tcsumother2
-tcsumother3<-sum(dt$tcOther3, na.rm=TRUE)
+tcsumReqInfo3<-sum(dt$tcReqInfo3, na.rm=TRUE)
 #tcsumother3
 
-ttsumother1<-sum(dt$ttOther1, na.rm=TRUE)
+ttsumReqInfo1<-sum(dt$ttReqInfo1, na.rm=TRUE)
 #ttsumother1
-ttsumother2<-sum(dt$ttOther2, na.rm=TRUE)
+ttsumReqInfo2<-sum(dt$ttReqInfo2, na.rm=TRUE)
 #ttsumother2
-ttsumother3<-sum(dt$ttOther3, na.rm=TRUE)
+ttsumReqInfo3<-sum(dt$ttReqInfo3, na.rm=TRUE)
 #ttsumother3
 
-rcsumother1<-sum(dt$rcOther1, na.rm=TRUE)
-rcsumother2<-sum(dt$rcOther2, na.rm=TRUE)
-rcsumother3<-sum(dt$rcOther3, na.rm=TRUE)
+rcsumReqInfo1<-sum(dt$rcReqInfo1, na.rm=TRUE)
+rcsumReqInfo2<-sum(dt$rcReqInfo2, na.rm=TRUE)
+rcsumReqInfo3<-sum(dt$rcReqInfo3, na.rm=TRUE)
 
-rtsumother1<-sum(dt$rtOther1, na.rm=TRUE)
-rtsumother2<-sum(dt$rtOther2, na.rm=TRUE)
-rtsumother3<-sum(dt$rtOther3, na.rm=TRUE)
+rtsumReqInfo1<-sum(dt$rtReqInfo1, na.rm=TRUE)
+rtsumReqInfo2<-sum(dt$rtReqInfo2, na.rm=TRUE)
+rtsumReqInfo3<-sum(dt$rtReqInfo3, na.rm=TRUE)
 
 
 Number <- c("Other examples","Relative importance","Algorithm detail")
-tc <- c(tcsumother1,tcsumother2,tcsumother3)
-tt <- c(ttsumother1,ttsumother2,ttsumother3)
-rc <- c(rcsumother1,rcsumother2,rcsumother3)
-rt <- c(rtsumother1,rtsumother2,rtsumother3)
+tc <- c(tcsumReqInfo1,tcsumReqInfo2,tcsumReqInfo3)
+tt <- c(ttsumReqInfo1,ttsumReqInfo2,ttsumReqInfo3)
+rc <- c(rcsumReqInfo1,rcsumReqInfo2,rcsumReqInfo3)
+rt <- c(rtsumReqInfo1,rtsumReqInfo2,rtsumReqInfo3)
 nyx <- data.frame(Number,tc,tt, rc, rt)
 
 # load needed libraries
