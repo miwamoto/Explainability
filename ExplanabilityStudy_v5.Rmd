@@ -212,7 +212,7 @@ In this instance, we see that of those assigned to the Twitter context (tAssign)
 ```{r}
 dc[, .N, by = .(rTreat, rAssign)]
 ```
-Similarly, we see a pretty even split between recidivicsm context assignment, with another 13 instances of attrition. These could overlap with the other examples of attrition.
+Similarly, we see a pretty even split between recidivism context assignment, with another 13 instances of attrition. These could overlap with the other examples of attrition.
 
 From the analysis above, it appears that `r dt[na.omit(tControl), .N]` respondents were assigned to the Twitter-control group, `r dt[na.omit(tTreat), .N]` were assigned to the Twitter-treatment group, `r dt[na.omit(rControl), .N]` were assigned to the recidivism-control group and `r dt[na.omit(rTreat), .N]` were assigned to the recidivism-treatment group.
 
@@ -495,7 +495,7 @@ Interesting? Our MTers are mostly college students?
 
 ### Twitter Moderation
 
-Create linear models for each question for both Twitter and recidivism. The models subset the data to look only at those respondents that were assigned to either treatment or control for that context. In this way, someone who attrited in teh first context will not count against the second context.
+Create linear models for each question for both Twitter and recidivism. The models subset the data to look only at those respondents that were assigned to either treatment or control for that context. In this way, someone who attrited in the first context will not count against the second context.
 
 ```{r}
 mtFair <- ivreg(tFair ~ tTreat, data = dc[tAssign == 1])
@@ -669,6 +669,8 @@ dc2[, Meaningful := (variable == 'tTreat')*tMeaningful + (variable == 'rTreat')*
 names(dc2)[names(dc2) == "variable"] = "Context"
 names(dc2)[names(dc2) == "value"] = "treat"
 
+dc2[,c("tFair", "tAcc", "tSat", "tUseful", "tClear", "tMeaningful", "rFair", "rAcc", "rSat", 
+       "rUseful", "rClear", "rMeaningful"):=NULL]
 ```
 
 ```{r}
@@ -685,12 +687,15 @@ mUseful <- lm(Useful ~ factor(Context) + treat + treat*factor(Context),
 mMeaningful <- lm(Meaningful ~ factor(Context) + treat + treat*factor(Context), 
             data = dc2[rAssign == 1 & tAssign == 1])
 stargazer(mFair, mAcc, mSat, mClear, mUseful, mMeaningful, type = 'text',
-          covariate.labels = c("Recidivism Context", "Treatment", "Recidvism Treatment"),
+          covariate.labels = c("Recidivism Context", "Treatment", "Recidivism Treatment"),
           dep.var.labels = c("Fairness", "Accuracy", "Satisfaction", "Usefulness",
                              "Clarity", "Meaningfulness"),
           dep.var.caption = c("Context Comparison"))
 ```
 
+```{r}
+colnames(dc2)
+```
 
 
 
