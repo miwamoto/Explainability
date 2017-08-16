@@ -370,27 +370,15 @@ ethnicities <- data.table(sum(!is.na(dt$white)), sum(!is.na(dt$black)), sum(!is.
                           sum(!is.na(dt$hispanic)), sum(!is.na(dt$pac_isle)), sum(!is.na(dt$other)))
 ethnicities2 = transpose(ethnicities)
 barplot(ethnicities2$V1, names = ethnic)
+
+dc[, .N, by = .(white, black, asian, hispanic, pac_isle, other)]
 ```
 
-Based on a quick look at our survey demographic responses, we see that approximately 2/3 of the respondents are male. The respondents also skew young, as almost half are between 25 and 34. Nearly 500 of our 641 respondents use social media daily, which may be biasing our results. More than half have completed a 4 year degree or higher. The respondents are also over 2/3 white.
+Based on a quick look at our survey demographic responses, we see that approximately 2/3 of the respondents are male. The respondents also skew young, as almost half are between 25 and 34. Nearly 500 of our 641 respondents use social media daily, which may be biasing our results. More than half have completed a 4 year degree or higher. The respondents are also over 2/3 white. Only 5 identify as none of the given options, 1 selected Pacific Islander, but also identifies as white and Asian. 29 respondents (5%) respondents did not answer the question.
 
 ## Regression Models
 
 A basic view of the data showed there was a change in the distributions. Regression models will allow us to gauge the significance of these changes. We have create linear models for each question for each context (Twitter and recidivism). The models subset the data to look only at those respondents that were assigned to either treatment or control for that context. In this way, someone who attrited in the first context will not count against the second context.
-
-```{r}
-r.se <- function(model) {
-  vcov <- vcovHC(model)
-  model$se <- sqrt(diag(vcov))
-  return(se)
-}
-
-r.p <- function(model) {
-  p <- coeftest(model, vcovHC(model))[ , 4]
-  #return(p)
-}
-```
-
 
 ### Twitter Moderation
 
@@ -636,34 +624,29 @@ In most cases, we see that the only statistical significance is the base rating 
 
 ## Influence of Other Factors - Demographics, etc
 
+### Gender and Race
 ```{r}
-dtFair <- lm(tFair ~ tTreat + ageGroup + educ + socMed + black + asian + hispanic 
-                   + other + pac_isle + female + gender_nc, data = dc)
-dtFair$se <- sqrt(diag(vcovHC(dtFair, type = "HC0")))
-dtFair$p <- coeftest(dtFair, vcovHC(dtFair, type = "HC0"))[ , 4]
+dtFair <- lm(tFair ~ tTreat + white + female + tTreat*white + tTreat*female, data = dc)
+dtFair$se <- sqrt(diag(vcovHC(dtFair, type = "HC1")))
+dtFair$p <- coeftest(dtFair, vcovHC(dtFair, type = "HC1"))[ , 4]
 
-dtAcc <- lm(tAcc ~ tTreat + ageGroup + educ + socMed + black + asian + hispanic 
-                   + other + pac_isle + female + gender_nc, data = dc)
-dtAcc$se <- sqrt(diag(vcovHC(dtAcc, type = "HC0")))
-dtAcc$p <- coeftest(dtAcc, vcovHC(dtAcc, type = "HC0"))[ , 4]
+dtAcc <- lm(tAcc ~ tTreat + white + female + tTreat*white + tTreat*female, data = dc)
+dtAcc$se <- sqrt(diag(vcovHC(dtAcc, type = "HC1")))
+dtAcc$p <- coeftest(dtAcc, vcovHC(dtAcc, type = "HC1"))[ , 4]
 
-dtSat <-lm(tSat ~ tTreat + ageGroup + educ + socMed + black + asian + hispanic 
-                   + other + pac_isle + female + gender_nc, data = dc)
+dtSat <-lm(tSat ~ tTreat + white + female + tTreat*white + tTreat*female, data = dc)
 dtSat$se <- sqrt(diag(vcovHC(dtSat, type = "HC1")))
 dtSat$p <- coeftest(dtSat, vcovHC(dtSat, type = "HC1"))[ , 4]
 
-dtUseful <- lm(tUseful ~ tTreat + ageGroup + educ + socMed + black + asian + hispanic 
-                   + other + pac_isle + female + gender_nc, data = dc)
+dtUseful <- lm(tUseful ~ tTreat + white + female + tTreat*white + tTreat*female, data = dc)
 dtUseful$se <- sqrt(diag(vcovHC(dtUseful, type = "HC1")))
 dtUseful$p <- coeftest(dtUseful, vcovHC(dtUseful, type = "HC1"))[ , 4]
 
-dtClear <- lm(tClear ~ tTreat + ageGroup + educ + socMed + black + asian + hispanic 
-                   + other + pac_isle + female + gender_nc, data = dc)
+dtClear <- lm(tClear ~ tTreat + white + female + tTreat*white + tTreat*female, data = dc)
 dtClear$se <- sqrt(diag(vcovHC(dtClear, type = "HC1")))
 dtClear$p <- coeftest(dtClear, vcovHC(dtClear, type = "HC1"))[ , 4]
 
-dtMeaningful <- lm(tMeaningful ~ tTreat + ageGroup + educ + socMed + black + asian + hispanic 
-                   + other + pac_isle + female + gender_nc, data = dc)
+dtMeaningful <- lm(tMeaningful ~ tTreat + white + female + tTreat*white + tTreat*female, data = dc)
 dtMeaningful$se <- sqrt(diag(vcovHC(dtMeaningful, type = "HC1")))
 dtMeaningful$p <- coeftest(dtMeaningful, vcovHC(dtMeaningful, type = "HC1"))[ , 4]
 
@@ -671,47 +654,167 @@ stargazer(dtFair, dtAcc, dtSat, dtUseful, dtClear, dtMeaningful,
           type = 'text',
           se = list(dtFair$se, dtAcc$se, dtSat$se, dtUseful$se, dtClear$se, dtMeaningful$se),
           p = list(dtFair$p, dtAcc$p, dtSat$p, dtUseful$p, dtClear$p, dtMeaningful$p),
-          covariate.labels = c("Explanation", "Age Group", "Education", "Social Media", "African American",
-                               "Asian", "Hispanic", "Other", "Pacific Islander", "Female", "Non-Conforming Gender"),
+          covariate.labels = c("Explanation", "White", "Female"),
           dep.var.labels = c("Fairness", "Accuracy", "Satisfaction", "Usefulness",
                              "Clarity", "Meaningfulness"),
           dep.var.caption = "Twitter Moderation")
 
 
 ```
-Women were statistically significantly more likely than men to agree with the Twitter decision. Pacific Islanders did not like the explanation. However, there were very few Pacific Islanders who responded, and the significance was not strong. Also, with so many metrics and variables, it is highly likely to see significance somewhere at a 0.05 level.
+
+Women were statistically significantly more likely than men to agree with the Twitter decision, although they had no significantly different response to the explanation. The respondents who replied as non-confirming gender also showed highly significant effects in 5 metrics, but this is suspect because it is a very small sample. Only `r nrow(dc[gender_nc == 1])` respondent identified as non-conforming.
+
+When looking at ethnicity, we see some significance, but some problems emerge. Previous regressions showed significant negative effects of treatment on Pacific Islanders. However, there were very few Pacific Islanders who responded. In fact, this group represents only `r nrow(dc[pac_isle == 1])` person. Also, with so many metrics and variables, it is highly likely to see significance somewhere at a 0.05 level.
+
+### Age
+Age was defined by groupings of mostly 10 year increments. This requires a regression on the factors of the variable as they are not continuous.
 
 ```{r}
-drFair <-lm(rFair ~ rTreat + ageGroup + educ + socMed + black + asian 
-                   + hispanic + other + pac_isle + female + gender_nc, data = na.omit(dc))
+dtFair <- lm(tFair ~ tTreat + factor(ageGroup) + tTreat*factor(ageGroup), data = dc)
+dtFair$se <- sqrt(diag(vcovHC(dtFair, type = "HC1")))
+dtFair$p <- coeftest(dtFair, vcovHC(dtFair, type = "HC1"))[ , 4]
+
+dtAcc <- lm(tAcc ~ tTreat + factor(ageGroup) + tTreat*factor(ageGroup), data = dc)
+dtAcc$se <- sqrt(diag(vcovHC(dtAcc, type = "HC1")))
+dtAcc$p <- coeftest(dtAcc, vcovHC(dtAcc, type = "HC1"))[ , 4]
+
+dtSat <-lm(tSat ~ tTreat + factor(ageGroup) + tTreat*factor(ageGroup), data = dc)
+dtSat$se <- sqrt(diag(vcovHC(dtSat, type = "HC1")))
+dtSat$p <- coeftest(dtSat, vcovHC(dtSat, type = "HC1"))[ , 4]
+
+dtUseful <- lm(tUseful ~ tTreat + factor(ageGroup) + tTreat*factor(ageGroup), data = dc)
+dtUseful$se <- sqrt(diag(vcovHC(dtUseful, type = "HC1")))
+dtUseful$p <- coeftest(dtUseful, vcovHC(dtUseful, type = "HC1"))[ , 4]
+
+dtClear <- lm(tClear ~ tTreat + factor(ageGroup) + tTreat*factor(ageGroup), data = dc)
+dtClear$se <- sqrt(diag(vcovHC(dtClear, type = "HC1")))
+dtClear$p <- coeftest(dtClear, vcovHC(dtClear, type = "HC1"))[ , 4]
+
+dtMeaningful <- lm(tMeaningful ~ tTreat + factor(ageGroup) + tTreat*factor(ageGroup), data = dc)
+dtMeaningful$se <- sqrt(diag(vcovHC(dtMeaningful, type = "HC1")))
+dtMeaningful$p <- coeftest(dtMeaningful, vcovHC(dtMeaningful, type = "HC1"))[ , 4]
+
+stargazer(dtFair, dtAcc, dtSat, dtUseful, dtClear, dtMeaningful,
+          type = 'text',
+          se = list(dtFair$se, dtAcc$se, dtSat$se, dtUseful$se, dtClear$se, dtMeaningful$se),
+          p = list(dtFair$p, dtAcc$p, dtSat$p, dtUseful$p, dtClear$p, dtMeaningful$p),
+          covariate.labels = c("Explanation"),
+          dep.var.labels = c("Fairness", "Accuracy", "Satisfaction", "Usefulness",
+                             "Clarity", "Meaningfulness"),
+          dep.var.caption = "Twitter Moderation")
+
+
+```
+There seem to be some significance to the effects, although many of these age groups are not well represented as shown previously. It might be more appropriate to bin these groups in a different way to test whether or not the largest group (ages 25-34) is somehow different.
+
+### Education
+Education was not collected as years of education, but as levels of education. It is appropriate to look at the factors for treatment effects.
+```{r}
+dtFair <- lm(tFair ~ tTreat + factor(educ) + tTreat*factor(educ), data = dc)
+dtFair$se <- sqrt(diag(vcovHC(dtFair, type = "HC1")))
+dtFair$p <- coeftest(dtFair, vcovHC(dtFair, type = "HC1"))[ , 4]
+
+dtAcc <- lm(tAcc ~ tTreat + factor(educ) + tTreat*factor(educ), data = dc)
+dtAcc$se <- sqrt(diag(vcovHC(dtAcc, type = "HC1")))
+dtAcc$p <- coeftest(dtAcc, vcovHC(dtAcc, type = "HC1"))[ , 4]
+
+dtSat <-lm(tSat ~ tTreat + factor(educ) + tTreat*factor(educ), data = dc)
+dtSat$se <- sqrt(diag(vcovHC(dtSat, type = "HC1")))
+dtSat$p <- coeftest(dtSat, vcovHC(dtSat, type = "HC1"))[ , 4]
+
+dtUseful <- lm(tUseful ~ tTreat + factor(educ) + tTreat*factor(educ), data = dc)
+dtUseful$se <- sqrt(diag(vcovHC(dtUseful, type = "HC1")))
+dtUseful$p <- coeftest(dtUseful, vcovHC(dtUseful, type = "HC1"))[ , 4]
+
+dtClear <- lm(tClear ~ tTreat + factor(educ) + tTreat*factor(educ), data = dc)
+dtClear$se <- sqrt(diag(vcovHC(dtClear, type = "HC1")))
+dtClear$p <- coeftest(dtClear, vcovHC(dtClear, type = "HC1"))[ , 4]
+
+dtMeaningful <- lm(tMeaningful ~ tTreat + factor(educ) + tTreat*factor(educ), data = dc)
+dtMeaningful$se <- sqrt(diag(vcovHC(dtMeaningful, type = "HC1")))
+dtMeaningful$p <- coeftest(dtMeaningful, vcovHC(dtMeaningful, type = "HC1"))[ , 4]
+
+stargazer(dtFair, dtAcc, dtSat, dtUseful, dtClear, dtMeaningful,
+          type = 'text',
+          se = list(dtFair$se, dtAcc$se, dtSat$se, dtUseful$se, dtClear$se, dtMeaningful$se),
+          p = list(dtFair$p, dtAcc$p, dtSat$p, dtUseful$p, dtClear$p, dtMeaningful$p),
+          covariate.labels = c("Explanation"),
+          dep.var.labels = c("Fairness", "Accuracy", "Satisfaction", "Usefulness",
+                             "Clarity", "Meaningfulness"),
+          dep.var.caption = "Twitter Moderation")
+
+
+```
+Satisfaction seems to be significant across all levels of education. 
+
+### Social Media Usage
+
+```{r}
+dtFair <- lm(tFair ~ tTreat + factor(socMed) + tTreat*factor(socMed), data = dc)
+dtFair$se <- sqrt(diag(vcovHC(dtFair, type = "HC1")))
+dtFair$p <- coeftest(dtFair, vcovHC(dtFair, type = "HC1"))[ , 4]
+
+dtAcc <- lm(tAcc ~ tTreat + factor(socMed) + tTreat*factor(socMed), data = dc)
+dtAcc$se <- sqrt(diag(vcovHC(dtAcc, type = "HC1")))
+dtAcc$p <- coeftest(dtAcc, vcovHC(dtAcc, type = "HC1"))[ , 4]
+
+dtSat <-lm(tSat ~ tTreat + factor(socMed) + tTreat*factor(socMed), data = dc)
+dtSat$se <- sqrt(diag(vcovHC(dtSat, type = "HC1")))
+dtSat$p <- coeftest(dtSat, vcovHC(dtSat, type = "HC1"))[ , 4]
+
+dtUseful <- lm(tUseful ~ tTreat + factor(socMed) + tTreat*factor(socMed), data = dc)
+dtUseful$se <- sqrt(diag(vcovHC(dtUseful, type = "HC1")))
+dtUseful$p <- coeftest(dtUseful, vcovHC(dtUseful, type = "HC1"))[ , 4]
+
+dtClear <- lm(tClear ~ tTreat + factor(socMed) + tTreat*factor(socMed), data = dc)
+dtClear$se <- sqrt(diag(vcovHC(dtClear, type = "HC1")))
+dtClear$p <- coeftest(dtClear, vcovHC(dtClear, type = "HC1"))[ , 4]
+
+dtMeaningful <- lm(tMeaningful ~ tTreat + factor(socMed) + tTreat*factor(socMed), data = dc)
+dtMeaningful$se <- sqrt(diag(vcovHC(dtMeaningful, type = "HC1")))
+dtMeaningful$p <- coeftest(dtMeaningful, vcovHC(dtMeaningful, type = "HC1"))[ , 4]
+
+stargazer(dtFair, dtAcc, dtSat, dtUseful, dtClear, dtMeaningful,
+          type = 'text',
+          se = list(dtFair$se, dtAcc$se, dtSat$se, dtUseful$se, dtClear$se, dtMeaningful$se),
+          p = list(dtFair$p, dtAcc$p, dtSat$p, dtUseful$p, dtClear$p, dtMeaningful$p),
+          covariate.labels = c("Explanation"),
+          dep.var.labels = c("Fairness", "Accuracy", "Satisfaction", "Usefulness",
+                             "Clarity", "Meaningfulness"),
+          dep.var.caption = "Twitter Moderation")
+
+
+```
+Again, there is some scattered significance throughout these models. The explanation has high significance for the control group, which is daily users. However, this is an incredibly large portion of the respondent population, so that is not surprising given our overall results. And it is difficult to trust the small sample sizes of the other groups. They also have larger errors, showing great variation, so we cannot draw conclusions from these groups. 
+
+### Race and Gender in the Rwecidivism Context
+Given the results shown above for the Twitter context, we are not going to examine all of the effects in the recidivism context. However, we will look at the role that race and gender play. Minorities have been shown to have been the victims of bias in the recidivism algorithms, so this is important to review.
+
+
+Again, Pacific Islanders rated the explanation worse than others. Women were more likely to agree with the decision than men. There were also other significant effects throughout the table, but they do not fit a pattern across metrics.
+
+```{r}
+drFair <-lm(rFair ~ rTreat + white + female + black + white*rTreat + female*rTreat + black*rTreat, data = na.omit(dc))
 drFair$se <- sqrt(diag(vcovHC(drFair, type = "HC1")))
 drFair$p <- coeftest(drFair, vcovHC(drFair, type = "HC1"))[ , 4]
 
-drAcc <-lm(rAcc ~ rTreat + ageGroup + educ + socMed + black + asian 
-                   + hispanic + other + pac_isle + female + gender_nc, data = dc)
+drAcc <-lm(rAcc ~ rTreat + white + female +  black + white*rTreat + female*rTreat + black*rTreat, data = dc)
 drAcc$se <- sqrt(diag(vcovHC(drAcc, type = "HC1")))
 drAcc$p <- coeftest(drAcc, vcovHC(drAcc, type = "HC1"))[ , 4]
 
-
-drSat <-lm(rSat ~ rTreat + ageGroup + educ + socMed + black + asian 
-                   + hispanic + other + pac_isle + female + gender_nc, data = dc)
+drSat <-lm(rSat ~ rTreat + white + female +  black + white*rTreat + female*rTreat + black*rTreat, data = dc)
 drSat$se <- sqrt(diag(vcovHC(drSat, type = "HC1")))
 drSat$p <- coeftest(drSat, vcovHC(drSat, type = "HC1"))[ , 4]
 
-drUseful <-lm(rUseful ~ rTreat + ageGroup + educ + socMed + black + asian 
-                   + hispanic + other + pac_isle + female + gender_nc, data = dc)
+drUseful <-lm(rUseful ~ rTreat + white + female +  black + white*rTreat + female*rTreat + black*rTreat, data = dc)
 drUseful$se <- sqrt(diag(vcovHC(drUseful, type = "HC1")))
 drUseful$p <- coeftest(drUseful, vcovHC(drUseful, type = "HC1"))[ , 4]
 
-
-drClear <-lm(rClear ~ rTreat + ageGroup + educ + socMed +  black + asian 
-                   + hispanic + other + pac_isle + female + gender_nc, data = dc)
+drClear <-lm(rClear ~ rTreat + white + female +  black + white*rTreat + female*rTreat + black*rTreat, data = dc)
 drClear$se <- sqrt(diag(vcovHC(drClear, type = "HC1")))
 drClear$p <- coeftest(drClear, vcovHC(drClear, type = "HC1"))[ , 4]
 
-
-drMeaningful <- lm(rMeaningful ~ rTreat + ageGroup + educ + socMed + black 
-                   + asian + hispanic + other + pac_isle + female + gender_nc, data = dc)
+drMeaningful <- lm(rMeaningful ~ rTreat + white + female +  black + white*rTreat + female*rTreat + black*rTreat, data = dc)
 drMeaningful$se <- sqrt(diag(vcovHC(drMeaningful, type = "HC1")))
 drMeaningful$p <- coeftest(drMeaningful, vcovHC(drMeaningful, type = "HC1"))[ , 4]
 
@@ -719,17 +822,13 @@ stargazer(drFair, drAcc, drSat, drUseful, drClear, drMeaningful,
           type = 'text',
           se = list(drFair$se, drAcc$se, drSat$se, drUseful$se, drClear$se, drMeaningful$se),
           p = list(drFair$p, drAcc$p, drSat$p, drUseful$p, drClear$p, drMeaningful$p),
-          covariate.labels = c("Explanation", "Age Group", "Education", "Social Media"),
+          covariate.labels = c("Explanation", "White", "Female"),
           dep.var.labels = c("Fairness", "Accuracy", "Satisfaction", "Usefulness",
                              "Clarity", "Meaningfulness"),
           dep.var.caption = "Recidivism Risk Assessment")
 
 ```
-Again, Pacific Islanders rated the explanation worse than others. Women were more likely to agree with the decision than men. There were also other significant effects throughout the table, but they do not fit a pattern across metrics.
-
-```{r}
-nrow(dc[other == 1])
-```
+African American respondents show a negative baseline difference with respect to fairness. Interestingly, 
 
 ###What Additional Information did respondents want
 
