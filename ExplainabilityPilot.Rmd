@@ -25,8 +25,22 @@ d1 <- d1[d1$random != "", ]
 Note: there are more than 100 columns, which is a limit for display in R studio. However, they are there and I will use them by calling directly.
 
 ## Randomization Check
+
 Did all of the treatments receive similar numbers of respondents?
+
 ```{r}
+# Naming Conventions
+# Q3 - Twitter Control
+# Q4 - Twitter Treatment 1
+# Q5 - Twitter Treatment 2
+# Q6 - Twitter Treatment 3
+# Q8 - Recidivism Control
+# Q9 - Recidivism Treatment 1
+# Q10 - Recidivism Treatment 2
+# Q11 - Recidivism Treatment 3
+
+# Calculate number who saw the first question of each of the paths
+# Q#.1 - Description of context. Using as an indicator of treatment assignment
 nrow(d1[d1$Q3.1 == 1, ])
 nrow(d1[d1$Q4.1 == 1, ])
 nrow(d1[d1$Q5.1 == 1, ])
@@ -36,7 +50,7 @@ nrow(d1[d1$Q9.1 == 1, ])
 nrow(d1[d1$Q10.1 == 1, ])
 nrow(d1[d1$Q11.1 == 1, ])
 ```
-Yes, pretty close.
+Yes, pretty close. All received between 19 and 21 respondents.
 
 Were the two contexts assigned equally? 
 ```{r}
@@ -70,9 +84,17 @@ The metrics we evaluated were split into two groups. The first three asked respo
 
 ### Consolidate each metric across treatments
 ```{r}
-# For the Twitter fairness question, nobody selected value 1, so it created some weirdness with the factors
-# The -4 accounts for a shift between value and factor
+# For the Twitter fairness question, nobody selected value 1, so it created some weirdness 
+# with the factors. The -4 accounts for a shift between value and factor
 # variables starting with a T indicate Twitter. Variables starting with an R indicate recidivism.
+
+# Q#.2 - Fairness
+# Q#.3 - Accuracy
+# Q#.4 - Satisfaction
+# Q#.6 - Usefulness
+# Q#.7 - Clarity
+# Q#.8 - Meaningfulness
+
 
 # Fairness questions
 d1$T_fair <- 0
@@ -133,6 +155,13 @@ R_treat = ((as.numeric(d1$Q8.1) - 1) + (as.numeric(d1$Q9.1) - 1)*2
 Create linear models for each question for both Twitter and recidivism. Regress on assignment groups, which is 1/0 for Q3.1, Q4.1, Q5.1, and Q6.1, with Q3.1 corresponding to control.
 
 ```{r}
+# Perform each regression on the variable for the metric regressed on the three different 
+# treatment assignments. This makes the control the constant value in the regression table.
+# Again, the Q#.1 indicates assignment to specific treatment category.
+# Q4 - Twitter Treatment 1
+# Q5 - Twitter Treatment 2
+# Q6 - Twitter Treatment 3
+
 m_T_fair <- lm( T_fair ~ Q4.1 + Q5.1 + Q6.1, data = d1)
 
 m_T_accurate <- lm( T_accurate ~ Q4.1 + Q5.1 + Q6.1, data = d1)
@@ -170,6 +199,13 @@ meaningful - negative is more meaningful
 ### Risk of Recidivism
 
 ```{r}
+# Perform each regression on the variable for the metric regressed on the three different 
+# treatment assignments. This makes the control the constant value in the regression table.
+# Again, the Q#.1 indicates assignment to specific treatment category.
+# Q9 - Recidivism Treatment 1
+# Q10 - Recidivism Treatment 2
+# Q11 - Recidivism Treatment 3
+
 m_R_fair <- lm( R_fair ~ Q9.1 + Q10.1 + Q11.1, data = d1)
 
 m_R_accurate <- lm( R_accurate ~ Q9.1 + Q10.1 + Q11.1, data = d1)

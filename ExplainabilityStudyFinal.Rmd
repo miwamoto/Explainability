@@ -281,16 +281,6 @@ wilcox.test(tMeaningful ~ tTreat , data = dc)$p.value
 ```
 All six metrics show statistical significance for the shift using the Wilcox rank sum test.
 
-###Context Comparison
-
-
-```{r results = 'hide', warning = FALSE}
-
-
-```
-
-
-
 ###Recidivism Responses Histogram
 ```{r}
 par(mfrow=c(2,3))
@@ -521,7 +511,26 @@ This shows that 3 people dropped out between seeing the treatment and responding
 
 ## Comparison of Contexts
 
-Our second research question asked if there was a difference between how respondents evaluated the explanation in two different contexts of varying importance or personal significance.
+Our second research question asked if there was a difference between how respondents evaluated the explanation in two different contexts of varying importance or personal significance. First, we will review this using the Wilcox signed rank test, which is the appropriate test of significance for the data as discussed before. We will filter to only include subjects who were assigned the same treatment in both contexts (control or explanation).
+
+```{r}
+dc[ , diffFair := rFair - tFair]
+dc[ , diffAcc := rAcc - tAcc]
+dc[ , diffSat := rSat - tSat]
+dc[ , diffUseful := rUseful - tUseful]
+dc[ , diffClear := rClear - tClear]
+dc[ , diffMeaningful := rMeaningful - tMeaningful]
+
+wilcox.test(dc[tTreat == rTreat & complete == 1]$diffFair)$p.value
+wilcox.test(dc[tTreat == rTreat & complete == 1]$diffAcc)$p.value
+wilcox.test(dc[tTreat == rTreat & complete == 1]$diffSat)$p.value
+wilcox.test(dc[tTreat == rTreat & complete == 1]$diffUseful)$p.value
+wilcox.test(dc[tTreat == rTreat & complete == 1]$diffClear)$p.value
+wilcox.test(dc[tTreat == rTreat & complete == 1]$diffMeaningful)$p.value
+
+```
+
+This again shows a highly statistically significant p-value in all metrics, with p-values at 0.0001 and lower. Interestingly, this significance is stronger with the decision metrics and smaller for the explanation metrics. This supports what we saw earlier where the Twitter context showed a lower degree of significance for the decision. As before, we will also look at regression models to show the magnitude of the differences in the context of this study.
 
 ```{r results = 'hide'} 
 # Create new data table that will combine metrics across different contexts by creating 
@@ -595,42 +604,6 @@ When comparing treatment effects across contexts, we see statistical significanc
 In the second row, we see what is effectively the same effects with the same significance of the Twitter treatment that we saw in the Twitter only models. The numbers are slightly different here because this analysis looks only at individuals who were assigned to treatment or control in both contexts, whereas previous models included records that may not have made it to a second context. So a few instances are missing in this regression where an individual did not make it to the second half of their survey. In the third row, we see the effect of the recidivism treatment compared to the effect of the Twitter treatment. Again, we have high statistical significance in all metrics as we did in the recidivism only models. However, the significance of the differences is less than of the treatment itself, dropping in 4 of the 6 cases below the 0.01 level, although still significant at a level of 0.05.
 
 When combining the results from the first and third rows, this suggests that the recidivism treatment started from a lower baseline due to the control explanation and therefore had more room to improve. This also shows that the explanation in this context did in fact provide greater effects than the explanation in the Twitter context. In the decision metrics, the sum of the treatment and recidivism treatment effects are approximately equal in magnitude but opposite in direction to the effect of the recidivism context. That means that the Twitter and recidivism contexts ended up at approximately equal ratings for those three metrics. In the explanations metrics, the treatment effects outweight the negative effect of the recidivism control compared to the twitter control. This shows that the recidivism explanation ratings ended up higher than the Twitter context, though not by too much. 
-
-##Testing to see if there is a difference between contexts
-
-```{r} 
-wilcox.test(Fair ~ Context , data = dc2)$p.value
-wilcox.test(Acc ~ Context , data = dc2)$p.value
-wilcox.test(Sat ~ Context , data = dc2)$p.value
-wilcox.test(Useful ~ Context , data = dc2)$p.value
-wilcox.test(Clear ~ Context, data = dc2)$p.value
-wilcox.test(Meaningful ~Context , data = dc2)$p.value
-
-```
-
-Yes, there is a statistically significant difference between answers across contexts for all variables. 
-
-##Testing to see if there is a difference in the differences between contexts 
-```{r} 
-# dc3<-dc2
-# dc3$dFair<-dc3$Fair[dc3$treat==1]-dc3$Fair[dc3$treat==0]
-# dc3$dAcc<-dc3$Acc[dc3$treat==1]-dc3$Acc[dc3$treat==0]
-# dc3$dSat<-dc3$Sat[dc3$treat==1]-dc3$Sat[dc3$treat==0]
-# dc3$dUseful<-dc3$Useful[dc3$treat==1]-dc3$Useful[dc3$treat==0]
-# dc3$dClear<-dc3$Clear[dc3$treat==1]-dc3$Clear[dc3$treat==0]
-# dc3$dMeaningful<-dc3$Meaningful[dc3$treat==1]-dc3$Meaningful[dc3$treat==0]
-# 
-# wilcox.test(dFair ~ Context , data = dc3)$p.value
-# wilcox.test(dAcc ~ Context , data = dc3)$p.value
-# wilcox.test(dSat ~ Context , data = dc3)$p.value
-# wilcox.test(dUseful ~ Context , data = dc3)$p.value
-# wilcox.test(dClear ~ Context, data = dc3)$p.value
-#wilcox.test(dMeaningful ~Context , data = dc3)$p.value
-
-#I'm not sure if this is correct to look at the difference between the change between treatment and control in twitter vs. recidivism. It doesn't seem quite right.
-
-```
-
 
 ## Difference in Order
 
@@ -866,7 +839,7 @@ stargazer(drFair, drAcc, drSat, drUseful, drClear, drMeaningful,
           dep.var.caption = "Criminal Recidivism - Gender")
 ```
 
-In teh context of recidivism, there are no significant differences between males and females, either in control or treatment.
+In the context of recidivism, there are no significant differences between males and females, either in control or treatment.
 
 ### Age
 
@@ -949,6 +922,7 @@ stargazer(dtFair, dtAcc, dtSat, dtUseful, dtClear, dtMeaningful,
 
 
 ```
+
 Satisfaction seems to be significant across all levels of education. There do not seem to be significant differences within metrics or across education levels. Subsequently, we will not test on the recidivism context.
 
 ### Social Media Usage
@@ -992,7 +966,7 @@ stargazer(dtFair, dtAcc, dtSat, dtUseful, dtClear, dtMeaningful,
 
 Again, there is some scattered significance throughout these models. The explanation has high significance for the control group, which is daily users. However, this is an incredibly large portion of the respondent population, so that is not surprising given our overall results. And it is difficult to trust the small sample sizes of the other groups. They also have larger errors, showing great variation, so we cannot draw conclusions from these groups. We will also not look at social media usage with respect to recidivism, as there wwere not many significant effects of social media use on Twitter moderation, which is more likely to be impacted by social media usage habits.
 
-###What Additional Information did respondents want
+###What Additional Information did respondents want?
 
 In each context, respondents were asked what information they would like to see as part of an explanation. This question was multiple choice with multiple selection allowed as well as a text write-in section. The three options were:
 
@@ -1043,7 +1017,7 @@ ggplot(nyxlong) +
 
 While not everyone answered this question, we see a consistent distribution of choices. The Relative Importance of factors was the most often selected in each combination of context and treatment. The Algorithm Details was a close second in many combinations of context and treatment, nearly the same as Relative Importance in the recidivism control. The control group almost always asked for more explanation than the treatment group, which can likely be attributed to the effectiveness of the explanation. A regression would show whether or not this is a significant effect. The only exception to this is that the Twitter treatment group selected Other Examples more than the control. This is a small difference in the least populated selection, and it is a smaller difference than the other options. 
 
-###Not to include in report, but text outputs of Other q 4 
+###Text Outputs
 ##Twitter control 
 again, whether there's any oversight into the decision or any appeals (though in this specific case it was clearly valid)
 Explanation of why they feel it's right to limit free speech.
